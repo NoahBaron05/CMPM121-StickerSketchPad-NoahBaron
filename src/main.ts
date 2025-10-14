@@ -8,9 +8,12 @@ const canvas = document.createElement("canvas")!;
 canvas.width = 256;
 canvas.height = 256;
 document.body.append(canvas);
-
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
+const clearButton = document.createElement("button");
+clearButton.id = "clear";
+clearButton.textContent = "Clear";
+document.body.append(clearButton);
 const cursor = { active: false, x: 0, y: 0 };
 
 addEventListener("mousedown", (mouse) => {
@@ -27,6 +30,10 @@ addEventListener("mousemove", (mouse) => {
   if (cursor.active) {
     drawLine(ctx, cursor.x, cursor.y, mouse.offsetX, mouse.offsetY);
   }
+});
+
+clearButton.addEventListener("click", () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
 function drawLine(
