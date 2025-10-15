@@ -35,6 +35,7 @@ document.body.append(redoButton);
 type Point = { x: number; y: number };
 let strokes: Point[][] = [];
 let currentStroke: Point[] = [];
+let undoList: Point[][] = [];
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.active = true;
@@ -58,14 +59,35 @@ canvas.addEventListener("mousemove", (e) => {
 clearButton.addEventListener("click", () => {
   strokes = [];
   currentStroke = [];
+  undoList = [];
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
+undoButton.addEventListener("click", () => {
+  if (strokes.length < 1) return;
+  if (currentStroke.length > 0) {
+    undoList.push(currentStroke);
+    currentStroke = [];
+  }
+
+  const lastStroke = strokes.pop()!;
+  undoList.push(lastStroke);
+
+  canvas.dispatchEvent(new Event("drawing-changed"));
+});
+
+redoButton.addEventListener("click", () => {
+  if (undoList.length < 1) return;
+
+  const redoStroke = undoList.pop()!;
+  strokes.push(redoStroke);
+
+  canvas.dispatchEvent(new Event("drawing-changed"));
+});
+
 canvas.addEventListener("drawing-changed", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  strokes.push(currentStroke);
 
   strokes.forEach((stroke) => {
     ctx.beginPath();
@@ -80,4 +102,16 @@ canvas.addEventListener("drawing-changed", () => {
 
     ctx.stroke();
   });
+
+  if (currentStroke.length > 0) {
+    ctx.beginPath();
+    for (let i = 1; i < currentStroke.length; i++) {
+      const p1 = currentStroke[i - 1];
+      const p2 = currentStroke[i];
+      if (!p1 || !p2) continue;
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+    }
+    ctx.stroke();
+  }
 });
