@@ -16,37 +16,53 @@ clearButton.textContent = "Clear";
 document.body.append(clearButton);
 const cursor = { active: false, x: 0, y: 0 };
 
-addEventListener("mousedown", (mouse) => {
-  cursor.x = mouse.offsetX;
-  cursor.y = mouse.offsetY;
+//Stroke setup
+type Point = { x: number; y: number };
+let strokes: Point[][] = [];
+let currentStroke: Point[] = [];
+
+canvas.addEventListener("mousedown", (e) => {
   cursor.active = true;
+  currentStroke = [{ x: e.offsetX, y: e.offsetY }];
 });
 
-addEventListener("mouseup", () => {
+canvas.addEventListener("mouseup", () => {
   cursor.active = false;
+  if (currentStroke.length > 0) {
+    strokes.push(currentStroke);
+  }
 });
 
-addEventListener("mousemove", (mouse) => {
+canvas.addEventListener("mousemove", (e) => {
   if (cursor.active) {
-    drawLine(ctx, cursor.x, cursor.y, mouse.offsetX, mouse.offsetY);
+    currentStroke.push({ x: e.offsetX, y: e.offsetY });
+    canvas.dispatchEvent(new Event("drawing-changed"));
   }
 });
 
 clearButton.addEventListener("click", () => {
+  strokes = [];
+  currentStroke = [];
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
-function drawLine(
-  context: CanvasRenderingContext2D,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-) {
-  context.beginPath();
-  context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
-  context.stroke();
-  cursor.x = x2;
-  cursor.y = y2;
-}
+canvas.addEventListener("drawing-changed", () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  strokes.push(currentStroke);
+
+  strokes.forEach((stroke) => {
+    ctx.beginPath();
+
+    for (let i = 1; i < stroke.length; i++) {
+      const p1 = stroke[i - 1];
+      const p2 = stroke[i];
+      if (!p1 || !p2) continue;
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+    }
+
+    ctx.stroke();
+  });
+});
