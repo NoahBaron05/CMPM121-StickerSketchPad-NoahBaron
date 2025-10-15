@@ -4,17 +4,32 @@ document.body.innerHTML = `
   <h1>Sticker Sketchpad</h1>
 `;
 
+//Canvas setup
 const canvas = document.createElement("canvas")!;
 canvas.width = 256;
 canvas.height = 256;
 document.body.append(canvas);
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
+document.body.append(document.createElement("br"));
+
+//Clear button setup
 const clearButton = document.createElement("button");
 clearButton.id = "clear";
 clearButton.textContent = "Clear";
 document.body.append(clearButton);
 const cursor = { active: false, x: 0, y: 0 };
+
+//Undo/redo button setup
+const undoButton = document.createElement("button");
+undoButton.id = "undo";
+undoButton.textContent = "Undo";
+document.body.append(undoButton);
+
+const redoButton = document.createElement("button");
+redoButton.id = "redo";
+redoButton.textContent = "Redo";
+document.body.append(redoButton);
 
 //Stroke setup
 type Point = { x: number; y: number };
