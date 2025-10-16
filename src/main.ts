@@ -31,12 +31,19 @@ redoButton.id = "redo";
 redoButton.textContent = "Redo";
 document.body.append(redoButton);
 
-//Stroke setup
-/*type Point = { x: number; y: number };
-let strokes: Point[][] = [];
-let currentStroke: Point[] = [];
-let undoList: Point[][] = [];
-*/
+//Thin/thick marker setup
+document.body.append(document.createElement("br"));
+document.body.append(document.createElement("br"));
+
+const thinButton = document.createElement("button");
+thinButton.id = "thin";
+thinButton.textContent = "Thin";
+document.body.append(thinButton);
+
+const thickButton = document.createElement("button");
+thickButton.id = "thick";
+thickButton.textContent = "Thick";
+document.body.append(thickButton);
 
 //Command interface setup
 interface Renderable {
@@ -47,9 +54,11 @@ type Point = { x: number; y: number };
 
 class LineStroke implements Renderable {
   private points: Point[] = [];
+  private thickness: number;
 
-  constructor(startX: number, startY: number) {
+  constructor(startX: number, startY: number, thickness: number) {
     this.points.push({ x: startX, y: startY });
+    this.thickness = thickness;
   }
 
   drag(newX: number, newY: number) {
@@ -58,6 +67,10 @@ class LineStroke implements Renderable {
 
   display(ctx: CanvasRenderingContext2D): void {
     if (this.points.length < 2) return;
+
+    ctx.lineWidth = this.thickness;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
     ctx.beginPath();
 
@@ -76,10 +89,11 @@ class LineStroke implements Renderable {
 let strokes: Renderable[] = [];
 let currentStroke: LineStroke | null = null;
 let undoList: Renderable[] = [];
+let lineThickness: number = 1;
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.active = true;
-  currentStroke = new LineStroke(e.offsetX, e.offsetY);
+  currentStroke = new LineStroke(e.offsetX, e.offsetY, lineThickness);
 });
 
 canvas.addEventListener("mouseup", () => {
@@ -122,6 +136,14 @@ redoButton.addEventListener("click", () => {
   strokes.push(redoStroke);
 
   canvas.dispatchEvent(new Event("drawing-changed"));
+});
+
+thinButton.addEventListener("click", () => {
+  lineThickness = 1;
+});
+
+thickButton.addEventListener("click", () => {
+  lineThickness = 6;
 });
 
 canvas.addEventListener("drawing-changed", () => {
