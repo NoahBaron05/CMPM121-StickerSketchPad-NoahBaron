@@ -50,65 +50,78 @@ interface Renderable {
   display(ctx: CanvasRenderingContext2D): void;
 }
 
-type Point = { x: number; y: number };
+interface ActiveStroke extends Renderable {
+  drag(x: number, y: number): void;
+}
 
-class LineStroke implements Renderable {
-  private points: Point[] = [];
-  private thickness: number;
+function createLineStroke(
+  startX: number,
+  startY: number,
+  thickness: number,
+): ActiveStroke {
+  const points = [{ x: startX, y: startY }];
+  const strokeThickness = thickness;
 
-  constructor(startX: number, startY: number, thickness: number) {
-    this.points.push({ x: startX, y: startY });
-    this.thickness = thickness;
-  }
+  return {
+    drag(newX: number, newY: number) {
+      points.push({ x: newX, y: newY });
+    },
 
-  drag(newX: number, newY: number) {
-    this.points.push({ x: newX, y: newY });
-  }
+    display(ctx: CanvasRenderingContext2D): void {
+      if (points.length < 2) return;
 
-  display(ctx: CanvasRenderingContext2D): void {
-    if (this.points.length < 2) return;
+      ctx.lineWidth = strokeThickness;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
 
-    ctx.lineWidth = this.thickness;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+      ctx.beginPath();
 
-    ctx.beginPath();
+      for (let i = 1; i < points.length; i++) {
+        const p1 = points[i - 1];
+        const p2 = points[i];
+        if (!p1 || !p2) continue;
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+      }
 
-    for (let i = 1; i < this.points.length; i++) {
-      const p1 = this.points[i - 1];
-      const p2 = this.points[i];
-      if (!p1 || !p2) continue;
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-    }
-
-    ctx.stroke();
-  }
+      ctx.stroke();
+    },
+  };
 }
 
 let strokes: Renderable[] = [];
-let currentStroke: LineStroke | null = null;
+let currentStroke: ActiveStroke | null = null;
+let lineThickness = 1;
 let undoList: Renderable[] = [];
-let lineThickness: number = 1;
+
+function startStroke(x: number, y: number) {
+  currentStroke = createLineStroke(x, y, lineThickness);
+}
+
+function continueStroke(x: number, y: number) {
+  if (currentStroke) currentStroke.drag(x, y);
+}
+
+function endStroke() {
+  if (!currentStroke) return;
+  strokes.push(currentStroke);
+  currentStroke = null;
+}
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.active = true;
-  currentStroke = new LineStroke(e.offsetX, e.offsetY, lineThickness);
+  startStroke(e.offsetX, e.offsetY);
 });
 
 canvas.addEventListener("mouseup", () => {
   cursor.active = false;
-  if (!currentStroke) return;
-
-  strokes.push(currentStroke);
-  currentStroke = null;
+  endStroke();
   canvas.dispatchEvent(new Event("drawing-changed"));
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  if (!cursor.active || !currentStroke) return;
-
-  currentStroke.drag(e.offsetX, e.offsetY);
+  if (!cursor.active) return;
+  continueStroke(e.offsetX, e.offsetY);
   canvas.dispatchEvent(new Event("drawing-changed"));
 });
 
