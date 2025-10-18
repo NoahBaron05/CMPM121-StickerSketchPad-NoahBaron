@@ -45,6 +45,11 @@ thickButton.id = "thick";
 thickButton.textContent = "Thick";
 document.body.append(thickButton);
 
+//Drawing Configuration
+const DrawingConfig = {
+  thickness: 1,
+};
+
 //Command interface setup
 interface Renderable {
   display(ctx: CanvasRenderingContext2D): void;
@@ -57,10 +62,9 @@ interface ActiveStroke extends Renderable {
 function createLineStroke(
   startX: number,
   startY: number,
-  thickness: number,
 ): ActiveStroke {
   const points = [{ x: startX, y: startY }];
-  const strokeThickness = thickness;
+  const thickness = DrawingConfig.thickness;
 
   return {
     drag(newX: number, newY: number) {
@@ -70,7 +74,7 @@ function createLineStroke(
     display(ctx: CanvasRenderingContext2D): void {
       if (points.length < 2) return;
 
-      ctx.lineWidth = strokeThickness;
+      ctx.lineWidth = thickness;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
@@ -91,11 +95,10 @@ function createLineStroke(
 
 let strokes: Renderable[] = [];
 let currentStroke: ActiveStroke | null = null;
-let lineThickness = 1;
 let undoList: Renderable[] = [];
 
 function startStroke(x: number, y: number) {
-  currentStroke = createLineStroke(x, y, lineThickness);
+  currentStroke = createLineStroke(x, y);
 }
 
 function continueStroke(x: number, y: number) {
@@ -152,11 +155,11 @@ redoButton.addEventListener("click", () => {
 });
 
 thinButton.addEventListener("click", () => {
-  lineThickness = 1;
+  DrawingConfig.thickness = 1;
 });
 
 thickButton.addEventListener("click", () => {
-  lineThickness = 6;
+  DrawingConfig.thickness = 6;
 });
 
 canvas.addEventListener("drawing-changed", () => {
