@@ -46,6 +46,25 @@ thickButton.id = "thick";
 thickButton.textContent = "Thick";
 document.body.append(thickButton);
 
+//Sticker Setup
+document.body.append(document.createElement("br"));
+document.body.append(document.createElement("br"));
+
+const stickerButton1 = document.createElement("button");
+stickerButton1.id = "sticker1";
+stickerButton1.textContent = "🚒";
+document.body.append(stickerButton1);
+
+const stickerButton2 = document.createElement("button");
+stickerButton2.id = "sticker2";
+stickerButton2.textContent = "🙄";
+document.body.append(stickerButton2);
+
+const stickerButton3 = document.createElement("button");
+stickerButton3.id = "sticker3";
+stickerButton3.textContent = "🎃";
+document.body.append(stickerButton3);
+
 //Drawing Configuration
 const DrawingConfig = {
   thickness: 2,
@@ -96,8 +115,13 @@ function createLineStroke(
 
 interface ToolPreview extends Renderable {}
 
+const ToolConfig = {
+  symbol: "*",
+};
+
 function createToolPreview(x: number, y: number): ToolPreview {
   const thickness = DrawingConfig.thickness;
+  const symbol = ToolConfig.symbol;
   return {
     display(ctx: CanvasRenderingContext2D) {
       ctx.save();
@@ -105,20 +129,62 @@ function createToolPreview(x: number, y: number): ToolPreview {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "black";
-      ctx.fillText("*", x, y + (3 * thickness));
+      ctx.fillText(symbol, x, y + (3 * thickness));
       ctx.restore();
     },
   };
 }
 
-let toolPreview: ToolPreview | null = null;
+function createStickerPreview(x: number, y: number): Renderable {
+  const emoji = StickerConfig.emoji;
+  return {
+    display(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.font = "32px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(emoji, x, y);
+      ctx.restore();
+    },
+  };
+}
+
+function createSticker(x: number, y: number): ActiveStroke {
+  const emoji = StickerConfig.emoji;
+  const pos = { x, y };
+
+  return {
+    drag(newX: number, newY: number) {
+      pos.x = newX;
+      pos.y = newY; // just reposition, not record path
+    },
+    display(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.font = "32px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(emoji, pos.x, pos.y);
+      ctx.restore();
+    },
+  };
+}
+
+const StickerConfig = {
+  active: false,
+  emoji: "",
+};
 
 let strokes: Renderable[] = [];
 let currentStroke: ActiveStroke | null = null;
 let undoList: Renderable[] = [];
+let toolPreview: ToolPreview | null = null;
 
 function startStroke(x: number, y: number) {
-  currentStroke = createLineStroke(x, y);
+  if (StickerConfig.active) {
+    currentStroke = createSticker(x, y);
+  } else {
+    currentStroke = createLineStroke(x, y);
+  }
 }
 
 function continueStroke(x: number, y: number) {
@@ -137,6 +203,7 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mouseup", () => {
+  if (StickerConfig.active) StickerConfig.active = false;
   cursor.active = false;
   endStroke();
   canvas.dispatchEvent(new Event("drawing-changed"));
@@ -144,11 +211,18 @@ canvas.addEventListener("mouseup", () => {
 
 canvas.addEventListener("mousemove", (e) => {
   toolPreview = createToolPreview(e.offsetX, e.offsetY);
-  canvas.dispatchEvent(new Event("tool-moved"));
 
-  if (!cursor.active) return;
-  continueStroke(e.offsetX, e.offsetY);
-  canvas.dispatchEvent(new Event("drawing-changed"));
+  if (cursor.active) {
+    continueStroke(e.offsetX, e.offsetY);
+    canvas.dispatchEvent(new Event("drawing-changed"));
+  } else {
+    if (StickerConfig.active) {
+      toolPreview = createStickerPreview(e.offsetX, e.offsetY);
+    } else {
+      toolPreview = createToolPreview(e.offsetX, e.offsetY);
+    }
+    canvas.dispatchEvent(new Event("tool-moved"));
+  }
 });
 
 canvas.addEventListener("mouseleave", () => {
@@ -189,6 +263,24 @@ thinButton.addEventListener("click", () => {
 
 thickButton.addEventListener("click", () => {
   DrawingConfig.thickness = 6;
+});
+
+stickerButton1.addEventListener("click", () => {
+  StickerConfig.active = true;
+  StickerConfig.emoji = stickerButton1.textContent;
+  canvas.dispatchEvent(new Event("tool-moved"));
+});
+
+stickerButton2.addEventListener("click", () => {
+  StickerConfig.active = true;
+  StickerConfig.emoji = stickerButton2.textContent;
+  canvas.dispatchEvent(new Event("tool-moved"));
+});
+
+stickerButton3.addEventListener("click", () => {
+  StickerConfig.active = true;
+  StickerConfig.emoji = stickerButton3.textContent;
+  canvas.dispatchEvent(new Event("tool-moved"));
 });
 
 canvas.addEventListener("drawing-changed", () => {
