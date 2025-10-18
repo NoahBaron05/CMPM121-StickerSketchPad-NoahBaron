@@ -8,6 +8,7 @@ document.body.innerHTML = `
 const canvas = document.createElement("canvas")!;
 canvas.width = 256;
 canvas.height = 256;
+canvas.style.cursor = "none";
 document.body.append(canvas);
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
@@ -47,7 +48,7 @@ document.body.append(thickButton);
 
 //Drawing Configuration
 const DrawingConfig = {
-  thickness: 1,
+  thickness: 2,
 };
 
 //Command interface setup
@@ -93,6 +94,25 @@ function createLineStroke(
   };
 }
 
+interface ToolPreview extends Renderable {}
+
+function createToolPreview(x: number, y: number): ToolPreview {
+  const thickness = DrawingConfig.thickness;
+  return {
+    display(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.font = `${thickness * 10}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "black";
+      ctx.fillText("*", x, y + (3 * thickness));
+      ctx.restore();
+    },
+  };
+}
+
+let toolPreview: ToolPreview | null = null;
+
 let strokes: Renderable[] = [];
 let currentStroke: ActiveStroke | null = null;
 let undoList: Renderable[] = [];
@@ -123,8 +143,17 @@ canvas.addEventListener("mouseup", () => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
+  toolPreview = createToolPreview(e.offsetX, e.offsetY);
+  canvas.dispatchEvent(new Event("tool-moved"));
+
   if (!cursor.active) return;
   continueStroke(e.offsetX, e.offsetY);
+  canvas.dispatchEvent(new Event("drawing-changed"));
+});
+
+canvas.addEventListener("mouseleave", () => {
+  toolPreview = null;
+  endStroke();
   canvas.dispatchEvent(new Event("drawing-changed"));
 });
 
@@ -155,7 +184,7 @@ redoButton.addEventListener("click", () => {
 });
 
 thinButton.addEventListener("click", () => {
-  DrawingConfig.thickness = 1;
+  DrawingConfig.thickness = 2;
 });
 
 thickButton.addEventListener("click", () => {
@@ -163,7 +192,16 @@ thickButton.addEventListener("click", () => {
 });
 
 canvas.addEventListener("drawing-changed", () => {
+  redraw();
+});
+
+canvas.addEventListener("tool-moved", () => {
+  redraw();
+});
+
+function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   strokes.forEach((s) => s.display(ctx));
   if (currentStroke) currentStroke.display(ctx);
-});
+  if (toolPreview) toolPreview.display(ctx);
+}
