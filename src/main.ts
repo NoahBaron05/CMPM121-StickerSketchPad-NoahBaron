@@ -50,20 +50,22 @@ document.body.append(thickButton);
 document.body.append(document.createElement("br"));
 document.body.append(document.createElement("br"));
 
-const stickerButton1 = document.createElement("button");
-stickerButton1.id = "sticker1";
-stickerButton1.textContent = "🚒";
-document.body.append(stickerButton1);
+const stickerDiv = document.createElement("div");
+stickerDiv.innerText = "Stickers: ";
+document.body.append(stickerDiv);
 
-const stickerButton2 = document.createElement("button");
-stickerButton2.id = "sticker2";
-stickerButton2.textContent = "🙄";
-document.body.append(stickerButton2);
+interface Sticker {
+  name: string;
+  emoji: string;
+}
 
-const stickerButton3 = document.createElement("button");
-stickerButton3.id = "sticker3";
-stickerButton3.textContent = "🎃";
-document.body.append(stickerButton3);
+const stickers: Sticker[] = [
+  { name: "ambulance", emoji: "🚒" },
+  { name: "rollingEyes", emoji: "🙄" },
+  { name: "pumpkin", emoji: "🎃" },
+];
+
+createStickerButtons(stickers);
 
 //Drawing Configuration
 const DrawingConfig = {
@@ -265,24 +267,6 @@ thickButton.addEventListener("click", () => {
   DrawingConfig.thickness = 6;
 });
 
-stickerButton1.addEventListener("click", () => {
-  StickerConfig.active = true;
-  StickerConfig.emoji = stickerButton1.textContent;
-  canvas.dispatchEvent(new Event("tool-moved"));
-});
-
-stickerButton2.addEventListener("click", () => {
-  StickerConfig.active = true;
-  StickerConfig.emoji = stickerButton2.textContent;
-  canvas.dispatchEvent(new Event("tool-moved"));
-});
-
-stickerButton3.addEventListener("click", () => {
-  StickerConfig.active = true;
-  StickerConfig.emoji = stickerButton3.textContent;
-  canvas.dispatchEvent(new Event("tool-moved"));
-});
-
 canvas.addEventListener("drawing-changed", () => {
   redraw();
 });
@@ -296,4 +280,19 @@ function redraw() {
   strokes.forEach((s) => s.display(ctx));
   if (currentStroke) currentStroke.display(ctx);
   if (toolPreview) toolPreview.display(ctx);
+}
+
+function createStickerButtons(stickers: Sticker[]) {
+  stickers.forEach((sticker) => {
+    const button = document.createElement("button");
+    button.textContent = sticker.emoji;
+    button.title = sticker.name;
+    button.addEventListener("click", () => {
+      StickerConfig.active = true;
+      StickerConfig.emoji = sticker.emoji;
+      canvas.dispatchEvent(new Event("tool-moved"));
+    });
+
+    stickerDiv.append(button);
+  });
 }
