@@ -92,6 +92,22 @@ rotationSlider.max = "360";
 rotationSlider.value = "0";
 document.body.append(rotationSlider);
 
+//Sticker sizing
+document.body.append(document.createElement("br"));
+
+const sizeLabel = document.createElement("label");
+sizeLabel.textContent = "Sticker Size: ";
+sizeLabel.htmlFor = "sizeSlider";
+document.body.append(sizeLabel);
+
+const sizeSlider = document.createElement("input");
+sizeSlider.type = "range";
+sizeSlider.id = "rotationSlider";
+sizeSlider.min = "5";
+sizeSlider.max = "100";
+sizeSlider.value = "32";
+document.body.append(sizeSlider);
+
 //Export button creation
 document.body.append(document.createElement("br"));
 document.body.append(document.createElement("br"));
@@ -174,13 +190,14 @@ function createToolPreview(x: number, y: number): ToolPreview {
 function createStickerPreview(x: number, y: number): Renderable {
   const emoji = StickerConfig.emoji;
   const rotation = StickerConfig.rotation * Math.PI / 180;
+  const size = StickerConfig.size;
 
   return {
     display(ctx: CanvasRenderingContext2D) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
-      ctx.font = "32px sans-serif";
+      ctx.font = `${size}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(emoji, 0, 0);
@@ -193,6 +210,7 @@ function createSticker(x: number, y: number): ActiveStroke {
   const emoji = StickerConfig.emoji;
   const pos = { x, y };
   const rotation = StickerConfig.rotation * Math.PI / 180;
+  const size = StickerConfig.size;
 
   return {
     drag(newX: number, newY: number) {
@@ -203,7 +221,7 @@ function createSticker(x: number, y: number): ActiveStroke {
       ctx.save();
       ctx.translate(pos.x, pos.y);
       ctx.rotate(rotation);
-      ctx.font = "32px sans-serif";
+      ctx.font = `${size}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(emoji, 0, 0);
@@ -216,6 +234,7 @@ const StickerConfig = {
   active: false,
   emoji: "",
   rotation: 0,
+  size: 32,
 };
 
 let strokes: Renderable[] = [];
@@ -321,6 +340,13 @@ exportButton.addEventListener("click", () => {
 
 rotationSlider.addEventListener("input", () => {
   StickerConfig.rotation = parseFloat(rotationSlider.value);
+  if (StickerConfig.active) {
+    canvas.dispatchEvent(new Event("tool-moved"));
+  }
+});
+
+sizeSlider.addEventListener("input", () => {
+  StickerConfig.size = parseFloat(sizeSlider.value);
   if (StickerConfig.active) {
     canvas.dispatchEvent(new Event("tool-moved"));
   }
