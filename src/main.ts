@@ -75,6 +75,23 @@ addStickerButton.id = "addStickerButton";
 addStickerButton.textContent = "Add Sticker";
 document.body.append(addStickerButton);
 
+//Sticker rotation
+document.body.append(document.createElement("br"));
+document.body.append(document.createElement("br"));
+
+const rotationLabel = document.createElement("label");
+rotationLabel.textContent = "Sticker Rotation: ";
+rotationLabel.htmlFor = "rotationSlider";
+document.body.append(rotationLabel);
+
+const rotationSlider = document.createElement("input");
+rotationSlider.type = "range";
+rotationSlider.id = "rotationSlider";
+rotationSlider.min = "0";
+rotationSlider.max = "360";
+rotationSlider.value = "0";
+document.body.append(rotationSlider);
+
 //Export button creation
 document.body.append(document.createElement("br"));
 document.body.append(document.createElement("br"));
@@ -156,13 +173,17 @@ function createToolPreview(x: number, y: number): ToolPreview {
 
 function createStickerPreview(x: number, y: number): Renderable {
   const emoji = StickerConfig.emoji;
+  const rotation = StickerConfig.rotation * Math.PI / 180;
+
   return {
     display(ctx: CanvasRenderingContext2D) {
       ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
       ctx.font = "32px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(emoji, x, y);
+      ctx.fillText(emoji, 0, 0);
       ctx.restore();
     },
   };
@@ -171,18 +192,21 @@ function createStickerPreview(x: number, y: number): Renderable {
 function createSticker(x: number, y: number): ActiveStroke {
   const emoji = StickerConfig.emoji;
   const pos = { x, y };
+  const rotation = StickerConfig.rotation * Math.PI / 180;
 
   return {
     drag(newX: number, newY: number) {
       pos.x = newX;
-      pos.y = newY; // just reposition, not record path
+      pos.y = newY;
     },
     display(ctx: CanvasRenderingContext2D) {
       ctx.save();
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate(rotation);
       ctx.font = "32px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(emoji, pos.x, pos.y);
+      ctx.fillText(emoji, 0, 0);
       ctx.restore();
     },
   };
@@ -191,6 +215,7 @@ function createSticker(x: number, y: number): ActiveStroke {
 const StickerConfig = {
   active: false,
   emoji: "",
+  rotation: 0,
 };
 
 let strokes: Renderable[] = [];
@@ -292,6 +317,13 @@ addStickerButton.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   exportDrawing();
+});
+
+rotationSlider.addEventListener("input", () => {
+  StickerConfig.rotation = parseFloat(rotationSlider.value);
+  if (StickerConfig.active) {
+    canvas.dispatchEvent(new Event("tool-moved"));
+  }
 });
 
 canvas.addEventListener("drawing-changed", () => {
