@@ -36,18 +36,21 @@ document.body.append(redoButton);
 document.body.append(document.createElement("br"));
 document.body.append(document.createElement("br"));
 
+const penDiv = document.createElement("div");
+penDiv.innerText = "Pen Width: ";
+document.body.append(penDiv);
+
 const thinButton = document.createElement("button");
 thinButton.id = "thin";
 thinButton.textContent = "Thin";
-document.body.append(thinButton);
+penDiv.append(thinButton);
 
 const thickButton = document.createElement("button");
 thickButton.id = "thick";
 thickButton.textContent = "Thick";
-document.body.append(thickButton);
+penDiv.append(thickButton);
 
 //Sticker Setup
-document.body.append(document.createElement("br"));
 document.body.append(document.createElement("br"));
 
 const stickerDiv = document.createElement("div");
@@ -83,7 +86,7 @@ document.body.append(exportButton);
 
 //Drawing Configuration
 const DrawingConfig = {
-  thickness: 2,
+  thickness: 1,
 };
 
 //Command interface setup
@@ -274,11 +277,11 @@ redoButton.addEventListener("click", () => {
 });
 
 thinButton.addEventListener("click", () => {
-  DrawingConfig.thickness = 2;
+  DrawingConfig.thickness = 1;
 });
 
 thickButton.addEventListener("click", () => {
-  DrawingConfig.thickness = 6;
+  DrawingConfig.thickness = 5;
 });
 
 addStickerButton.addEventListener("click", () => {
