@@ -330,7 +330,7 @@ thickButton.addEventListener("click", () => {
 
 addStickerButton.addEventListener("click", () => {
   const newSticker: Sticker = { emoji: "" };
-  newSticker.emoji = prompt("Choose an emoji as a sticker", "🧽")!;
+  newSticker.emoji = prompt("Choose an emoji as a sticker", "👽")!;
   addSticker(newSticker);
 });
 
