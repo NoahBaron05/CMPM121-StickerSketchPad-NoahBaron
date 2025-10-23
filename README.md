@@ -1,3 +1,3 @@
-# CMPM 121 D2 Project
+# CMPM 121 D2 Project - Noah Baron
 
-This is the starting point for your CMPM 121 D2 project. Students should make sure to remove _this_ content from their README.md file and replace it with their own project documentation.
+This program runs a sticker sketchpad. Here users will be able to draw in their browser with a pen, in both a thin and thick setting, as well as place emoji "stickers" on their canvas. Finally, users are able to export their drawings and save them directly to their computer.
