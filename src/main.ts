@@ -72,6 +72,15 @@ addStickerButton.id = "addStickerButton";
 addStickerButton.textContent = "Add Sticker";
 document.body.append(addStickerButton);
 
+//Export button creation
+document.body.append(document.createElement("br"));
+document.body.append(document.createElement("br"));
+
+const exportButton = document.createElement("button");
+exportButton.id = "export";
+exportButton.textContent = "Export";
+document.body.append(exportButton);
+
 //Drawing Configuration
 const DrawingConfig = {
   thickness: 2,
@@ -278,6 +287,10 @@ addStickerButton.addEventListener("click", () => {
   addSticker(newSticker);
 });
 
+exportButton.addEventListener("click", () => {
+  exportDrawing();
+});
+
 canvas.addEventListener("drawing-changed", () => {
   redraw();
 });
@@ -304,4 +317,20 @@ function addSticker(sticker: Sticker) {
 
   stickers.push(sticker);
   stickerDiv.append(button);
+}
+
+function exportDrawing() {
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = 1024;
+  exportCanvas.width = 1024;
+
+  const exportCtx = exportCanvas.getContext("2d") as CanvasRenderingContext2D;
+  exportCtx.scale(4, 4);
+
+  strokes.forEach((s) => s.display(exportCtx));
+
+  const anchor = document.createElement("a");
+  anchor.href = canvas.toDataURL("image/png");
+  anchor.download = "sketchpad.png";
+  anchor.click();
 }
