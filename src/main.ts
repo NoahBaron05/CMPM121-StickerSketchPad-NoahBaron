@@ -62,8 +62,8 @@ interface Sticker {
 }
 
 const stickers: Sticker[] = [
-  { emoji: "🚒" },
-  { emoji: "🙄" },
+  { emoji: "🦇" },
+  { emoji: "👻" },
   { emoji: "🎃" },
 ];
 
